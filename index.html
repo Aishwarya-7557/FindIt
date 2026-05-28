@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FindIt – Campus Lost & Found</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus Jakarta Sans:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <nav>
+    <div class="logo" onclick="switchPage('lost')">
+      <div class="logo-dot"></div>FindIt
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-lost" onclick="switchPage('lost')">🔴 Lost Items</button>
+      <button class="nav-tab" id="tab-found" onclick="switchPage('found')">🟢 Found Archive</button>
+    </div>
+    <div class="nav-actions" id="navActions">
+      <!-- rendered by JS -->
+    </div>
+  </nav>
+
+  <!-- PAGE: LOST -->
+  <div class="page active" id="page-lost">
+    <section class="hero">
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+      <div class="hero-scanline"></div>
+      <div class="hero-tag">Campus Lost &amp; Found</div>
+      <h1>Lost something?<br><span>Let's find it.</span></h1>
+      <p>Post lost and found items, connect with your campus community, and reunite belongings with their owners.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary" onclick="requireAuth(()=>openPostModal('lost'))">📦 Report Lost</button>
+        <button class="btn btn-ghost" onclick="requireAuth(()=>openPostModal('found'))">🎉 I Found Something</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">Total Items</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="stat-lost">0</div>
+          <div class="stat-label">Still Lost</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="stat-found">0</div>
+          <div class="stat-label">Found Archive</div>
+        </div>
+      </div>
+    </section>
+    <div class="controls">
+      <div class="controls-inner">
+        <div class="search-wrap">
+          <input type="text" style="display:none" aria-hidden="true">
+          <input type="text" id="searchLost" placeholder="🔍 Search items, locations…" oninput="renderLost()" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+        </div>
+        <div class="filter-chips" id="lostChips">
+          <button class="chip active" onclick="setLostCat('all',this)">All</button>
+          <button class="chip" onclick="setLostCat('ID Card',this)">🪪 ID Card</button>
+          <button class="chip" onclick="setLostCat('Phone',this)">📱 Phone</button>
+          <button class="chip" onclick="setLostCat('Books',this)">📚 Books</button>
+          <button class="chip" onclick="setLostCat('Wallet',this)">👛 Wallet</button>
+          <button class="chip" onclick="setLostCat('Keys',this)">🔑 Keys</button>
+          <button class="chip" onclick="setLostCat('Laptop',this)">💻 Laptop</button>
+          <button class="chip" onclick="setLostCat('Other',this)">📦 Other</button>
+        </div>
+      </div>
+    </div>
+    <main class="main">
+      <div class="section-header">
+        <div class="section-title">Lost Items <span class="count-badge" id="lostCount">0</span></div>
+        <select onchange="lostSort=this.value;renderLost()"
+          style="font-size:.8rem;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;outline:none;font-family:'DM Sans',sans-serif;">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+        </select>
+      </div>
+      <div class="grid" id="lostGrid"></div>
+    </main>
+  </div>
+
+  <!-- PAGE: FOUND ARCHIVE -->
+  <div class="page" id="page-found">
+    <section class="found-hero">
+      <div class="found-tag">📦 Found Items Archive</div>
+      <h1>Items That Were Found</h1>
+      <p>These items have been reported as found. Contact the finder to claim your item.</p>
+    </section>
+    <div class="controls">
+      <div class="controls-inner">
+        <div class="search-wrap">
+          <input type="text" style="display:none" aria-hidden="true">
+          <input type="text" id="searchFound" placeholder="🔍 Search found items…" oninput="renderFound()" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+        </div>
+        <div class="filter-chips" id="foundChips">
+          <button class="chip active" onclick="setFoundCat('all',this)">All</button>
+          <button class="chip" onclick="setFoundCat('ID Card',this)">🪪 ID Card</button>
+          <button class="chip" onclick="setFoundCat('Phone',this)">📱 Phone</button>
+          <button class="chip" onclick="setFoundCat('Books',this)">📚 Books</button>
+          <button class="chip" onclick="setFoundCat('Wallet',this)">👛 Wallet</button>
+          <button class="chip" onclick="setFoundCat('Keys',this)">🔑 Keys</button>
+          <button class="chip" onclick="setFoundCat('Laptop',this)">💻 Laptop</button>
+          <button class="chip" onclick="setFoundCat('Other',this)">📦 Other</button>
+        </div>
+      </div>
+    </div>
+    <main class="main">
+      <div class="readonly-banner">🔒 <span>This archive is <strong>read-only</strong>. Found items cannot be edited or
+          deleted. Contact the finder to claim your item.</span></div>
+      <div class="section-header">
+        <div class="section-title">Found Archive <span class="count-badge" id="foundCount">0</span></div>
+      </div>
+      <div class="grid" id="foundGrid"></div>
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════
+     MODAL: LOGIN / REGISTER
+══════════════════════════════ -->
+  <div class="modal-overlay" id="authLoginModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title">🔐 Sign In to Post</div>
+        <button class="close-btn" onclick="closeModal('authLoginModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem;line-height:1.65;">
+          Anyone can browse and view items. Sign in to post a lost or found item — your name and contact are used as
+          your account.
+        </p>
+        <!-- Tab toggle -->
+        <div
+          style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:1.2rem;">
+          <button id="loginTab" class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+          <button id="registerTab" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+        </div>
+
+        <!-- LOGIN PANEL -->
+        <div id="loginPanel">
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input type="email" id="loginEmail" placeholder="student@college.edu">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" id="loginPassword" placeholder="Enter your password">
+          </div>
+          <div class="auth-err" id="loginErr"></div>
+        </div>
+
+        <!-- REGISTER PANEL -->
+        <div id="registerPanel" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="regName" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input type="email" id="regEmail" placeholder="student@college.edu">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" id="regPassword" placeholder="Create a password (min 6 chars)">
+          </div>
+          <div class="auth-err" id="regErr"></div>
+          <p style="font-size:.75rem;color:var(--text3);line-height:1.55;margin-top:.5rem;">Your email and password will
+            be used to sign in to your account.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('authLoginModal')">Cancel</button>
+        <button class="btn-submit" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign In →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+     MODAL: POST
+══════════════════════════════ -->
+  <div class="modal-overlay" id="postModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Post an Item</div>
+        <button class="close-btn" onclick="closeModal('postModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Item Type</label>
+          <div class="type-select-group">
+            <div class="type-radio lost-r selected" id="radioLost" onclick="selectType('lost')">🔴 Lost Item</div>
+            <div class="type-radio found-r" id="radioFound" onclick="selectType('found')">🟢 Found Item</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Item Photo <span
+              style="color:var(--text3);font-weight:400">(optional)</span></label>
+          <input type="file" id="postImgInput" class="upload-hidden" accept="image/*"
+            onchange="handleImgUpload(this,'postPreview','postUploadBox')">
+          <label class="upload-trigger" for="postImgInput">
+            <div class="upload-box" id="postUploadBox">
+              <div class="upload-placeholder">
+                <div class="up-icon">🖼️</div>
+                <div class="up-text"><strong>Click here to upload</strong> a photo</div>
+                <div class="up-text">JPG, PNG, WEBP</div>
+              </div>
+              <img class="upload-preview" id="postPreview" alt="preview">
+              <div class="change-overlay">📷 Click to change photo</div>
+            </div>
+          </label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Item Name *</label>
+            <input type="text" id="fName" placeholder="e.g. Black wallet">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="fCategory">
+              <option value="">Select category</option>
+              <option>ID Card</option>
+              <option>Phone</option>
+              <option>Books</option>
+              <option>Wallet</option>
+              <option>Keys</option>
+              <option>Laptop</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea id="fDesc" placeholder="Describe the item – color, brand, distinguishing features…"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" id="fLocation" placeholder="e.g. Library, Block B">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="text" id="fDate" placeholder="e.g. 26 Apr 2026">
+          </div>
+        </div>
+        <!-- Reward — only shown for lost items -->
+        <div class="form-group" id="rewardGroup">
+          <label class="form-label">🎁 Reward <span style="color:var(--text3);font-weight:400">(optional – lost items only)</span></label>
+          <input type="text" id="fReward" placeholder="e.g. Treat, ₹200, Homemade food, Gift…">
+        </div>
+        <!-- Author/Contact auto-filled from session -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Posted By</label>
+            <input type="text" id="fAuthor" readonly style="background:var(--bg3);color:var(--text2);">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact</label>
+            <input type="text" id="fContact" readonly style="background:var(--bg3);color:var(--text2);">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('postModal')">Cancel</button>
+        <button class="btn-submit" onclick="submitPost()">Post Item 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+     MODAL: DETAIL
+══════════════════════════════ -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="detailTitle">Item Details</div>
+        <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
+      </div>
+      <div class="modal-body" id="detailBody"></div>
+      <div class="modal-footer" id="detailFooter"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+     MODAL: EDIT
+══════════════════════════════ -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit Item</div>
+        <button class="close-btn" onclick="closeModal('editModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Item Photo <span
+              style="color:var(--text3);font-weight:400">(optional)</span></label>
+          <input type="file" id="editImgInput" class="upload-hidden" accept="image/*"
+            onchange="handleImgUpload(this,'editPreview','editUploadBox')">
+          <label class="upload-trigger" for="editImgInput">
+            <div class="upload-box" id="editUploadBox">
+              <div class="upload-placeholder">
+                <div class="up-icon">🖼️</div>
+                <div class="up-text"><strong>Click here to upload</strong> a photo</div>
+              </div>
+              <img class="upload-preview" id="editPreview" alt="preview">
+              <div class="change-overlay">📷 Click to change photo</div>
+            </div>
+          </label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Item Name *</label>
+            <input type="text" id="eName" placeholder="Item name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="eCategory">
+              <option value="">Select</option>
+              <option>ID Card</option>
+              <option>Phone</option>
+              <option>Books</option>
+              <option>Wallet</option>
+              <option>Keys</option>
+              <option>Laptop</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea id="eDesc"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" id="eLocation">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="text" id="eDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact</label>
+          <input type="text" id="eContact">
+        </div>
+        <div class="form-group" id="editRewardGroup">
+          <label class="form-label">🎁 Reward <span style="color:var(--text3);font-weight:400">(optional)</span></label>
+          <input type="text" id="eReward" placeholder="e.g. Treat, ₹200, Homemade food, Gift…">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+        <button class="btn-submit" onclick="saveEdit()">Save Changes ✅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+     MODAL: MARK AS FOUND
+══════════════════════════════ -->
+  <div class="modal-overlay" id="markFoundModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title">🎉 Mark as Found</div>
+        <button class="close-btn" onclick="closeModal('markFoundModal')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:.6rem;">🎊</div>
+        <p style="font-size:.875rem;color:var(--text2);line-height:1.65;margin-bottom:1.2rem;">
+          Great news! Who found this item? Enter their name to credit them in the archive.
+        </p>
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">Finder's Name *</label>
+          <input type="text" id="finderName" placeholder="Name of the person who found it">
+          <div class="auth-err" id="finderErr"></div>
+        </div>
+        <p style="font-size:.75rem;color:var(--text3);line-height:1.55;">This item will be moved to the Found Archive
+          and credited to the finder.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('markFoundModal')">Cancel</button>
+        <button class="btn-submit" style="background:#1a6636;" onclick="confirmMarkFound()">✅ Confirm Found</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg"></span>
+  </div>
+
+  <footer>Built for students, by students &middot; <strong>FindIt</strong> – Campus Lost &amp; Found &middot; Data
+    synced live to Firebase</footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
